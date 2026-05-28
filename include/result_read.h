@@ -7,7 +7,7 @@
 
 namespace mAsyncDiskIO{
 
-    class async_result_read:async_result_base{
+    class async_result_read:public async_result_base{
         private:
         friend class async_io;
 

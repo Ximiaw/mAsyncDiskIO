@@ -9,3 +9,4 @@ add_library(${PROJECT_NAME} ${libsrc})
 target_include_directories(${PROJECT_NAME} PUBLIC 
     ${CMAKE_SOURCE_DIR}/include
 )
+target_link_libraries(mAsyncDiskIOLib PRIVATE uring)

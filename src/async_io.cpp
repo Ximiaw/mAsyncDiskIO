@@ -2,7 +2,7 @@
 
 namespace mAsyncDiskIO{
 
-    async_io::async_io(size_t deep=32){
+    async_io::async_io(size_t deep){
         int ret = io_uring_queue_init(deep,&ring,0);//IORING_SETUP_SQPOLL
         if(ret<0) throw std::runtime_error("io_uring_queue_init failed");
     };
@@ -16,7 +16,7 @@ namespace mAsyncDiskIO{
         io_uring_sqe* sqe = io_uring_get_sqe(&ring);
         if(!sqe) return weak_result{};//队列没有空位置失败
 
-        shared_result sr = std::make_shared<async_result_base>(new async_result_read{&ring,&set});
+        shared_result sr = std::make_shared<async_result_read>(&ring,&set);
         async_result_read* arr = static_cast<async_result_read*>(sr.get());
         arr->weak_r = sr;
 
