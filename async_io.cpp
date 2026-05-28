@@ -3,8 +3,9 @@
 
 #include<liburing.h>
 #include<inttypes.h>
-#include<vector>
 #include<stdexcept>
+#include<memory>
+#include<set>
 
 struct user_data
 {
@@ -16,28 +17,32 @@ class async_read_result{
     private:
     io_uring_cqe* cqe;
     io_uring* ring;
-    u_int8_t* buf;
     user_data* user_d;
+    std::set<async_read_result>* set;
     public:
-    explicit async_read_result(io_uring* ring):ring(ring),buf(nullptr){
+    explicit async_read_result(io_uring* ring,std::set<async_read_result>* set):ring(ring),buf(nullptr),set(set){
         cqe=nullptr;
     };
     ~async_read_result(){
         if(!ring){
-            if(buf) delete[] buf;
+            if(user_d&&user_d->buf) delete[] user_d->buf;
             return;
         };
         if(!cqe) wait();
         finish();
+        if(set&&set->find(*this)!=set->end())
+            set->erase(*this);
     };
     async_read_result(async_read_result&)=delete;
     async_read_result(async_read_result&& other) noexcept{
         cqe=other.cqe;
         ring=other.ring;
-        buf=other.buf;
+        user_d=other.user_d;
+
         other.cqe=nullptr;
         other.ring=nullptr;
-        other.buf=nullptr;
+        other.user_d=nullptr;
+        other.set=nullptr;
     };
     async_read_result& operator=(async_read_result&)=delete;
     async_read_result& operator=(async_read_result&& other) noexcept{
@@ -46,10 +51,11 @@ class async_read_result{
         }
         cqe=other.cqe;
         ring=other.ring;
-        buf=other.buf;
+        user_d=other.user_d;
+
         other.cqe=nullptr;
         other.ring=nullptr;
-        other.buf=nullptr;
+        other.user_d=nullptr;
         return *this;
     };
 
@@ -63,7 +69,7 @@ class async_read_result{
             cqe=nullptr;
             return false;
         }
-        buf=reinterpret_cast<u_int8_t*>(cqe->user_data);
+        user_d=reinterpret_cast<user_data*>(cqe->user_data);
         return cqe->res;
     };
     int wait(){
@@ -72,12 +78,16 @@ class async_read_result{
             cqe=nullptr;
             return false;
         }
-        buf=reinterpret_cast<u_int8_t*>(cqe->user_data);
+        user_d=reinterpret_cast<user_data*>(cqe->user_data);
         return cqe->res;
     };
+    u_int64_t use_data(){
+        if(!cqe||!user_d||!user_d->usr_d) throw std::runtime_error("use_data:user_data is empty");
+        return user_d->usr_d;
+    };
     u_int8_t* data(){
-        if(!cqe) throw std::runtime_error("data:buffer is empty");
-        return buf;
+        if(!cqe||!user_d||!user_d->buf) throw std::runtime_error("data:buffer is empty");
+        return user_d->buf;
     };
     size_t size(){
         if(!cqe) throw std::runtime_error("size:cqe is empty");
@@ -86,16 +96,20 @@ class async_read_result{
     void finish(){
         if(!ring||!cqe) return;
         io_uring_cqe_seen(ring,cqe);
-        if(buf) delete[] buf;
+        if(user_d&&user_d->buf) delete[] user_d->buf;
         ring=nullptr;
         cqe=nullptr;
-        buf=nullptr;
+        user_d=nullptr;
     };
 };
 
 class async_io{
     private:
+    using shared_read=std::shared_ptr<async_read_result>;
+    using weak_read=std::weak_ptr<async_read_result>;
+    private:
     io_uring ring;
+    std::set<shared_read> set;
 
     public:
     async_io(int deep=32){
@@ -104,6 +118,7 @@ class async_io{
     };
     ~async_io(){
         io_uring_queue_exit(&ring);
+        set.clear();
     };
     async_io(async_io&)=delete;
     async_io(async_io&&)=delete;
@@ -111,12 +126,12 @@ class async_io{
     async_io& operator=(async_io&&)=delete;
 
     public:
-    async_read_result read(int fd,size_t size,u_int64_t offset=0,void* user_data=nullptr){
+    weak_read read(int fd,size_t size,u_int64_t offset=0,u_int64_t use_data=0){
         io_uring_sqe* sqe=io_uring_get_sqe(&ring);
-        if(!sqe) return async_read_result{nullptr};//队列没有空位置失败
+        if(!sqe) return weak_read{};//队列没有空位置失败
 
-        async_read_result rs{&ring};
-        u_int8_t* buf=new u_int8_t[size];
+        shared_read rs=std::make_shared<async_read_result>(&ring,&set);
+        user_data* buf=new user_data{use_data,new u_int8_t[size]};
         io_uring_prep_read(sqe,fd,buf,size,offset);
         io_uring_sqe_set_data(sqe,buf);
         io_uring_submit(&ring);
