@@ -11,13 +11,13 @@ namespace mAsyncDiskIO{
         private:
         friend class async_io;
 
-        io_uring_cqe* cqe;
-        use_data use_d;
+        io_uring* ring;
+        io_uring_cqe* cqe=nullptr;
         weak_result weak_r;
         result_set* set;
 
         public:
-        explicit async_result_read(io_uring_cqe* cqe,size_t buf_size,result_set* set,shared_result* sr);
+        explicit async_result_read(io_uring* ring,result_set* set);
         ~async_result_read();
         async_result_read(async_result_read&)=delete;
         async_result_read(async_result_read&&) noexcept;
@@ -28,7 +28,7 @@ namespace mAsyncDiskIO{
         bool peek();
         size_t wait();
         uint64_t user_data();
-        uint8_t* data();//不允许在外部delete
+        uint8_t* data();//不应在外部delete
         size_t size();
         void finish();
     };
