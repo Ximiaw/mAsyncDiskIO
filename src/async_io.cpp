@@ -20,7 +20,7 @@ namespace mAsyncDiskIO{
         async_result_read* arr = static_cast<async_result_read*>(sr.get());
         arr->weak_r = sr;
 
-        use_data* ud = new use_data{user_data,new uint8_t[size]};
+        use_data* ud = new use_data{user_data,new uint8_t[size+1]{}};
         io_uring_prep_read(sqe,fd,ud->buf,size,offset);
         io_uring_sqe_set_data(sqe,ud);
         io_uring_submit(&ring);
