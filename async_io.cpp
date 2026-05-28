@@ -6,21 +6,27 @@
 #include<vector>
 #include<stdexcept>
 
-class async_io;
+struct user_data
+{
+    u_int64_t usr_d;
+    u_int8_t* buf;
+};
 
 class async_read_result{
     private:
-    friend class async_io;
     io_uring_cqe* cqe;
     io_uring* ring;
     u_int8_t* buf;
+    user_data* user_d;
     public:
-    explicit async_read_result(io_uring* ring,size_t buf_size):ring(ring){
-        buf=new u_int8_t[buf_size];
+    explicit async_read_result(io_uring* ring):ring(ring),buf(nullptr){
         cqe=nullptr;
     };
     ~async_read_result(){
-        if(!ring) return;
+        if(!ring){
+            if(buf) delete[] buf;
+            return;
+        };
         if(!cqe) wait();
         finish();
     };
@@ -51,25 +57,23 @@ class async_read_result{
     bool empty(){
         return ring==nullptr;
     };
-    bool peek(){
+    int peek(){
         int ret = io_uring_peek_cqe(ring,&cqe);
-        if(ret==0 && cqe->res>=0){
-            return true;
+        if(ret!=0){
+            cqe=nullptr;
+            return false;
         }
-        cqe=nullptr;
-        return false;
+        buf=reinterpret_cast<u_int8_t*>(cqe->user_data);
+        return cqe->res;
     };
-    bool wait(){
+    int wait(){
         int ret = io_uring_wait_cqe(ring,&cqe);
-        if(ret==0 && cqe->res>=0){
-            return true;
+        if(ret!=0){
+            cqe=nullptr;
+            return false;
         }
-        cqe=nullptr;
-        return false;
-    };
-    void* user_data(){
-        if(!cqe) throw std::runtime_error("user_data:cqe is empty");
-        return (void*)cqe->user_data;
+        buf=reinterpret_cast<u_int8_t*>(cqe->user_data);
+        return cqe->res;
     };
     u_int8_t* data(){
         if(!cqe) throw std::runtime_error("data:buffer is empty");
@@ -95,7 +99,7 @@ class async_io{
 
     public:
     async_io(int deep=32){
-        int ret = io_uring_queue_init(deep,&ring,IORING_SETUP_SQPOLL);
+        int ret = io_uring_queue_init(deep,&ring,0);//IORING_SETUP_SQPOLL
         if(ret<0) throw std::runtime_error("io_uring_queue_init failed");
     };
     ~async_io(){
@@ -109,11 +113,12 @@ class async_io{
     public:
     async_read_result read(int fd,size_t size,u_int64_t offset=0,void* user_data=nullptr){
         io_uring_sqe* sqe=io_uring_get_sqe(&ring);
-        if(!sqe) return async_read_result{nullptr,0};//队列没有空位置失败
+        if(!sqe) return async_read_result{nullptr};//队列没有空位置失败
 
-        async_read_result rs{&ring,size};
-        io_uring_prep_read(sqe,fd,rs.buf,size,offset);
-        io_uring_sqe_set_data(sqe,user_data);
+        async_read_result rs{&ring};
+        u_int8_t* buf=new u_int8_t[size];
+        io_uring_prep_read(sqe,fd,buf,size,offset);
+        io_uring_sqe_set_data(sqe,buf);
         io_uring_submit(&ring);
         return rs;
     };
