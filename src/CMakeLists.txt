@@ -1,3 +1,6 @@
+cmake_minimum_required(VERSION 3.10)
+
+project(mAsyncDiskIOLib)
 
 file(GLOB_RECURSE libsrc "*.cpp")
 
