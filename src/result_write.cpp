@@ -12,7 +12,9 @@ namespace mAsyncDiskIO{
     async_result_write::async_result_write(async_result_write&& other) noexcept{
         ring=std::move(other.ring);
         cqe=other.cqe;
+        use_d=other.use_d;
 
+        other.use_d=nullptr;
         other.cqe=nullptr;
     };
 
@@ -20,7 +22,9 @@ namespace mAsyncDiskIO{
         if(this==&other) return *this;
         ring=std::move(other.ring);
         cqe=other.cqe;
+        use_d=other.use_d;
 
+        other.use_d=nullptr;
         other.cqe=nullptr;
         return *this;
     };

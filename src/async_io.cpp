@@ -11,14 +11,15 @@ namespace mAsyncDiskIO{
         io_uring_queue_exit(ring.get());
     };
 
-    shared_result_read async_io::read(int fd,size_t size,uint64_t offset,uint64_t user_data){
+    shared_result_read async_io::read(int fd,uint32_t size,uint64_t offset,uint64_t user_data){
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return shared_result_read{};//队列没有空位置失败
 
         shared_result_read sr = std::make_shared<async_result_read>(ring);
         async_result_read* arr = sr.get();
 
-        use_data* ud = new use_data{user_data,new uint8_t[size+1]{}};
+        use_data* ud = new use_data{user_data,new uint8_t[size+1]};
+        ud->buf[size]=0;
         io_uring_prep_read(sqe,fd,ud->buf,size,offset);
         io_uring_sqe_set_data(sqe,ud);
         io_uring_submit(ring.get());
@@ -26,7 +27,7 @@ namespace mAsyncDiskIO{
         return sr;
     };
 
-    shared_result_write async_io::write(int fd,unique_buf&& buf,size_t size,uint64_t offset,uint64_t user_data){
+    shared_result_write async_io::write(int fd,unique_buf&& buf,uint32_t size,uint64_t offset,uint64_t user_data){
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return shared_result_write{};//队列没有空位置失败
 
