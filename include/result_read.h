@@ -13,7 +13,7 @@ namespace mAsyncDiskIO{
 
         io_uring* ring;
         io_uring_cqe* cqe=nullptr;
-        weak_result weak_r;
+        weak_result_read weak_r;
         result_set* set;
 
         public:

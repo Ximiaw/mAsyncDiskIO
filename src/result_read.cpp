@@ -18,7 +18,7 @@ namespace mAsyncDiskIO{
         other.ring=nullptr;
         other.set=nullptr;
         other.cqe=nullptr;
-        other.weak_r=weak_result{};
+        other.weak_r=weak_result_read{};
     };
 
     async_result_read& async_result_read::operator=(async_result_read&& other) noexcept{
@@ -31,7 +31,7 @@ namespace mAsyncDiskIO{
         other.ring=nullptr;
         other.set=nullptr;
         other.cqe=nullptr;
-        other.weak_r=weak_result{};
+        other.weak_r=weak_result_read{};
         return *this;
     };
 
@@ -81,6 +81,6 @@ namespace mAsyncDiskIO{
         ring=nullptr;
         cqe=nullptr;
         set=nullptr;
-        weak_r=weak_result{};
+        weak_r=weak_result_read{};
     };
 };
