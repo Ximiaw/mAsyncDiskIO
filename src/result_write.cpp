@@ -6,6 +6,7 @@ namespace mAsyncDiskIO{
 
     async_result_write::~async_result_write(){
         finish();
+        if(use_d) delete use_d;
     };
 
     async_result_write::async_result_write(async_result_write&& other) noexcept{
@@ -63,8 +64,6 @@ namespace mAsyncDiskIO{
     void async_result_write::finish(){
         if(ring.expired()) return;
         if(!cqe&&wait()==-1) return;
-        delete reinterpret_cast<use_data*>(cqe->user_data);
-        cqe->user_data=0;
         io_uring_cqe_seen(ring.lock().get(),cqe);
         ring.reset();
         cqe=nullptr;
