@@ -53,7 +53,7 @@ namespace mAsyncDiskIO{
 
     optional_ui64 async_result_write::user_data(){
         if(!cqe) return optional_ui64{};
-        return optional_ui64{reinterpret_cast<use_data*>(cqe->user_data)->ues_d};
+        return optional_ui64{reinterpret_cast<use_data*>(cqe->user_data)->use_d};
     };
 
     size_t async_result_write::size(){

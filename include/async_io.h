@@ -10,7 +10,7 @@ namespace mAsyncDiskIO{
 
     class async_io{
         private:
-        io_uring ring;
+        shared_uring ring;
 
         public:
         async_io(size_t deep=32);

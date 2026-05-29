@@ -11,11 +11,12 @@ namespace mAsyncDiskIO{
         private:
         friend class async_io;
 
-        io_uring* ring;
+        weak_uring ring;
         io_uring_cqe* cqe=nullptr;
+        use_data* use_d=nullptr;
 
         public:
-        explicit async_result_read(io_uring* ring);
+        explicit async_result_read(weak_uring ring);
         ~async_result_read();
         async_result_read(async_result_read&)=delete;
         async_result_read(async_result_read&&) noexcept;

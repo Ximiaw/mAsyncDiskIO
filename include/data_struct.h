@@ -13,7 +13,7 @@ namespace mAsyncDiskIO{
 
     struct use_data
     {
-        uint64_t ues_d=0;//用户数据，用于标识，如果是指针则其生命周期由外界保证
+        uint64_t use_d=0;//用户数据，用于标识，如果是指针则其生命周期由外界保证
         uint8_t* buf=nullptr;
 
         ~use_data(){
@@ -27,6 +27,9 @@ namespace mAsyncDiskIO{
     using weak_result_read=std::weak_ptr<async_result_read>;
     using weak_result_write=std::weak_ptr<async_result_write>;
     using result_set=std::set<shared_result>;
+
+    using shared_uring=std::shared_ptr<io_uring>;
+    using weak_uring=std::weak_ptr<io_uring>;
 
     using optional_ui64=std::optional<uint64_t>;
 
