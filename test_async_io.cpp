@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Ximiaw
+// SPDX-License-Identifier: MIT
 #include <gtest/gtest.h>
 #include <fcntl.h>
 #include <unistd.h>

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Ximiaw
+// SPDX-License-Identifier: MIT
 #ifndef RESULT_READ_H
 #define RESULT_READ_H
 

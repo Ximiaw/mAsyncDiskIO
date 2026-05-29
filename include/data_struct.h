@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Ximiaw
+// SPDX-License-Identifier: MIT
 #ifndef DATA_STRUCT_H
 #define DATA_STRUCT_H
 

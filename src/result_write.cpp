@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Ximiaw
+// SPDX-License-Identifier: MIT
 #include"result_write.h"
 
 namespace mAsyncDiskIO{

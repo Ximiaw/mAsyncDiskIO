@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Ximiaw
+// SPDX-License-Identifier: MIT
 #ifndef ASYNC_IO_H
 #define ASYNC_IO_H
 
