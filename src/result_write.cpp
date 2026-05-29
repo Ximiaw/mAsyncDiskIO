@@ -49,7 +49,7 @@ namespace mAsyncDiskIO{
         return state::FINISH;
     };
 
-    long async_result_write::wait(){
+    int async_result_write::wait(){
         if(cqe) return cqe->res;
         int ret = io_uring_wait_cqe(ring,&cqe);
         if(ret!=0) return -1;
@@ -57,6 +57,30 @@ namespace mAsyncDiskIO{
         delete ud->buf;
         ud->buf=nullptr;
         return cqe->res;
+    };
+
+    optional_ui64 async_result_write::user_data(){
+        if(!cqe) return optional_ui64{};
+        return optional_ui64{reinterpret_cast<use_data*>(cqe->user_data)->ues_d};
+    };
+
+    size_t async_result_write::size(){
+        if(!cqe) return 0;
+        return cqe->res;
+    };
+
+    void async_result_write::finish(){
+        if(!ring) return;
+        shared_result_write srw = weak_r.lock();
+        if(set->find(srw)!=set->end()) set->erase(srw);
+        if(!cqe) wait();
+        delete reinterpret_cast<use_data*>(cqe->user_data);
+        cqe->user_data=0;
+        io_uring_cqe_seen(ring,cqe);
+        ring=nullptr;
+        cqe=nullptr;
+        set=nullptr;
+        weak_r=weak_result_write{};
     };
 
 };

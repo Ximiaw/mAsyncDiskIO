@@ -2,6 +2,7 @@
 #define DATA_STRUCT_H
 
 #include<inttypes.h>
+#include<optional>
 #include<memory>
 #include<set>
 #include"result_base.h"
@@ -26,6 +27,8 @@ namespace mAsyncDiskIO{
     using weak_result_read=std::weak_ptr<async_result_read>;
     using weak_result_write=std::weak_ptr<async_result_write>;
     using result_set=std::set<shared_result>;
+
+    using optional_ui64=std::optional<uint64_t>;
 
     using unique_buf=std::unique_ptr<uint8_t[],void(*)(uint8_t*)>;
     inline unique_buf make_unique_buf(uint8_t* ptr=nullptr){

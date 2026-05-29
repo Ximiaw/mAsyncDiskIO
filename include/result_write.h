@@ -26,8 +26,8 @@ namespace mAsyncDiskIO{
 
         bool empty();
         state peek();
-        long wait();
-        uint64_t user_data();
+        int wait();
+        optional_ui64 user_data();
         size_t size();
         void finish();
     };
