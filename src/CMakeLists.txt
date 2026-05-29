@@ -5,6 +5,6 @@ file(GLOB_RECURSE libsrc "*.cpp")
 add_library(${PROJECT_NAME} ${libsrc})
 
 target_include_directories(${PROJECT_NAME} PUBLIC 
-    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC uring)
