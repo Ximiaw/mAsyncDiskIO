@@ -25,8 +25,8 @@ namespace mAsyncDiskIO{
         async_result_write& operator=(async_result_write&&) noexcept;
 
         bool empty();
-        bool peek();
-        size_t wait();
+        state peek();
+        long wait();
         uint64_t user_data();
         size_t size();
         void finish();

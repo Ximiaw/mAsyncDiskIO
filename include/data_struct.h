@@ -33,6 +33,12 @@ namespace mAsyncDiskIO{
             if(ptr) delete[] ptr;
         }};
     };
+
+    enum class state{
+        ERROR,
+        FINISH,
+        UNFINISHED
+    };
 };
 
 #include"result_read.h"

@@ -39,17 +39,23 @@ namespace mAsyncDiskIO{
         return ring==nullptr||cqe==nullptr;
     };
 
-    bool async_result_write::peek(){
-        if(cqe) return true;
+    state async_result_write::peek(){
+        if(cqe) return state::FINISH;
         int ret = io_uring_peek_cqe(ring,&cqe);
-        if(ret!=0) return false;
-        return true;
+        if(ret!=0) return ret<0?state::ERROR:state::UNFINISHED;
+        use_data* ud = reinterpret_cast<use_data*>(cqe->user_data);
+        delete ud->buf;
+        ud->buf=nullptr;
+        return state::FINISH;
     };
 
-    size_t async_result_write::wait(){
+    long async_result_write::wait(){
         if(cqe) return cqe->res;
         int ret = io_uring_wait_cqe(ring,&cqe);
-        if(ret!=0) 0;
+        if(ret!=0) return -1;
+        use_data* ud = reinterpret_cast<use_data*>(cqe->user_data);
+        delete ud->buf;
+        ud->buf=nullptr;
         return cqe->res;
     };
 
