@@ -83,6 +83,14 @@ rr->finish();
 
 ## API
 
+### data_struct
+
+| 类型 | 说明 |
+|------|------|
+| `make_unique_buf(ptr)` | 工厂函数，从裸指针构造 `unique_buf`。传 `nullptr` 构造空缓冲区 |
+
+- `unique_buf` 不可拷贝，只可移动。通过 `make_unique_buf` 创建，析构时自动 `delete[]` 底层数组。
+
 ### async_io
 
 | 方法 | 说明 |
@@ -98,7 +106,7 @@ rr->finish();
 
 | 方法 | 说明 |
 |------|------|
-| `empty()` | 请求尚未完成时为 `true` |
+| `empty()` | 未取到数据时为 `true` |
 | `peek()` | 非阻塞检查状态：`UNFINISHED` / `FINISH` / `ERROR` |
 | `wait()` | 阻塞等待完成，返回 io_uring 结果（字节数或负的错误码） |
 | `user_data()` | 返回提交时传入的用户数据（`optional<uint64_t>`） |
