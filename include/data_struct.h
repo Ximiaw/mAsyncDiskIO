@@ -21,6 +21,12 @@ namespace mAsyncDiskIO{
     using weak_result=std::weak_ptr<async_result_base>;
     using result_set=std::set<shared_result>;
 
+    using unique_buf=std::unique_ptr<uint8_t,void(*)(uint8_t*)>;
+    inline unique_buf make_unique_buf(uint8_t* ptr=nullptr){
+        return unique_buf{ptr,[](uint8_t* ptr){
+            if(ptr) delete[] ptr;
+        }};
+    };
 };
 
 #endif //DATA_STRUCT_H

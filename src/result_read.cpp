@@ -58,9 +58,11 @@ namespace mAsyncDiskIO{
         return reinterpret_cast<use_data*>(cqe->user_data)->ues_d;
     };
 
-    uint8_t* async_result_read::data(){
-        if(!cqe) return nullptr;
-        return reinterpret_cast<use_data*>(cqe->user_data)->buf;
+    unique_buf async_result_read::transfer_data(){
+        if(!cqe) return make_unique_buf();
+        uint8_t* ptr = reinterpret_cast<use_data*>(cqe->user_data)->buf;
+        reinterpret_cast<use_data*>(cqe->user_data)->buf=nullptr;
+        return make_unique_buf(ptr);
     };
 
     size_t async_result_read::size(){

@@ -28,7 +28,7 @@ namespace mAsyncDiskIO{
         bool peek();
         size_t wait();
         uint64_t user_data();
-        uint8_t* data();//不应在外部delete
+        unique_buf transfer_data();
         size_t size();
         void finish();
     };
