@@ -4,7 +4,7 @@
 #include<liburing.h>
 #include"data_struct.h"
 #include"result_read.h"
-//#include"result_write.h"
+#include"result_write.h"
 
 namespace mAsyncDiskIO{
 
@@ -23,7 +23,7 @@ namespace mAsyncDiskIO{
 
         public:
         weak_result_read read(int fd,size_t size,uint64_t offset,uint64_t user_data);
-        //weak_result_write write(int fd,unique_buf&& buf,size_t size,uint64_t offset,uint64_t user_data);
+        weak_result_write write(int fd,unique_buf&& buf,size_t size,uint64_t offset,uint64_t user_data);
     };
 
 };

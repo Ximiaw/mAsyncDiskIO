@@ -71,11 +71,10 @@ namespace mAsyncDiskIO{
     };
 
     void async_result_read::finish(){
-        set->erase(weak_r.lock());
-        if(!cqe){
-            ring=nullptr;
-            return;
-        };
+        if(!ring) return;
+        shared_result_read srr = weak_r.lock();
+        if(set->find(srr)!=set->end()) set->erase(srr);
+        if(!cqe) wait();
         delete reinterpret_cast<use_data*>(cqe->user_data);
         io_uring_cqe_seen(ring,cqe);
         ring=nullptr;

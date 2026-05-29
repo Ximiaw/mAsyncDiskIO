@@ -29,21 +29,21 @@ namespace mAsyncDiskIO{
         return sr;
     };
 
-    // weak_result_write async_io::write(int fd,unique_buf&& buf,size_t size,uint64_t offset,uint64_t user_data){
-    //     io_uring_sqe* sqe = io_uring_get_sqe(&ring);
-    //     if(!sqe) return weak_result_write{};//队列没有空位置失败
+    weak_result_write async_io::write(int fd,unique_buf&& buf,size_t size,uint64_t offset,uint64_t user_data){
+        io_uring_sqe* sqe = io_uring_get_sqe(&ring);
+        if(!sqe) return weak_result_write{};//队列没有空位置失败
 
-    //     shared_result_write sr = std::make_shared<async_result_write>(&ring,&set);
-    //     async_result_write* arw = static_cast<async_result_write*>(sr.get());
-    //     arw->weak_r = sr;
+        shared_result_write sr = std::make_shared<async_result_write>(&ring,&set);
+        async_result_write* arw = sr.get();
+        arw->weak_r = sr;
 
-    //     use_data* ud = new use_data{user_data,buf.release()};
-    //     io_uring_prep_write(sqe,fd,ud->buf,size,offset);
-    //     io_uring_sqe_set_data(sqe,ud);
-    //     io_uring_submit(&ring);
+        use_data* ud = new use_data{user_data,buf.release()};
+        io_uring_prep_write(sqe,fd,ud->buf,size,offset);
+        io_uring_sqe_set_data(sqe,ud);
+        io_uring_submit(&ring);
 
-    //     set.insert(sr);
-    //     return sr;
-    // };
+        set.insert(sr);
+        return sr;
+    };
 
 };
