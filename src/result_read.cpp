@@ -2,7 +2,7 @@
 
 namespace mAsyncDiskIO{
 
-    async_result_read::async_result_read(io_uring* ring,result_set* set):ring(ring),set(set){};
+    async_result_read::async_result_read(io_uring* ring):ring(ring){};
 
     async_result_read::~async_result_read(){
         if(!ring) return;
@@ -11,27 +11,19 @@ namespace mAsyncDiskIO{
 
     async_result_read::async_result_read(async_result_read&& other) noexcept{
         ring=other.ring;
-        set=other.set;
         cqe=other.cqe;
-        weak_r=other.weak_r;
 
         other.ring=nullptr;
-        other.set=nullptr;
         other.cqe=nullptr;
-        other.weak_r=weak_result_read{};
     };
 
     async_result_read& async_result_read::operator=(async_result_read&& other) noexcept{
         if(this==&other) return *this;
         ring=other.ring;
-        set=other.set;
         cqe=other.cqe;
-        weak_r=other.weak_r;
 
         other.ring=nullptr;
-        other.set=nullptr;
         other.cqe=nullptr;
-        other.weak_r=weak_result_read{};
         return *this;
     };
 
@@ -42,7 +34,7 @@ namespace mAsyncDiskIO{
     state async_result_read::peek(){
         if(cqe) return state::FINISH;
         int ret = io_uring_peek_cqe(ring,&cqe);
-        if(ret!=0) return ret<0?state::ERROR:state::UNFINISHED;
+        if(ret!=0) return state::UNFINISHED;
         return state::FINISH;
     }
 
@@ -72,15 +64,11 @@ namespace mAsyncDiskIO{
 
     void async_result_read::finish(){
         if(!ring) return;
-        shared_result_read srr = weak_r.lock();
-        if(set->find(srr)!=set->end()) set->erase(srr);
         if(!cqe) wait();
         delete reinterpret_cast<use_data*>(cqe->user_data);
         cqe->user_data=0;
         io_uring_cqe_seen(ring,cqe);
         ring=nullptr;
         cqe=nullptr;
-        set=nullptr;
-        weak_r=weak_result_read{};
     };
 };

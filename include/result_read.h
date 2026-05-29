@@ -13,11 +13,9 @@ namespace mAsyncDiskIO{
 
         io_uring* ring;
         io_uring_cqe* cqe=nullptr;
-        weak_result_read weak_r;
-        result_set* set;
 
         public:
-        explicit async_result_read(io_uring* ring,result_set* set);
+        explicit async_result_read(io_uring* ring);
         ~async_result_read();
         async_result_read(async_result_read&)=delete;
         async_result_read(async_result_read&&) noexcept;

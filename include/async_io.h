@@ -10,7 +10,6 @@ namespace mAsyncDiskIO{
 
     class async_io{
         private:
-        result_set set;
         io_uring ring;
 
         public:
