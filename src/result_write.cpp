@@ -25,7 +25,7 @@ namespace mAsyncDiskIO{
     };
 
     bool async_result_write::empty(){
-        return use_d=nullptr;
+        return use_d==nullptr;
     };
 
     state async_result_write::peek(){
