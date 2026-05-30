@@ -5,11 +5,10 @@
 
 #include<liburing.h>
 #include"data_struct.h"
-#include"result_base.h"
 
 namespace mAsyncDiskIO{
 
-    class async_result_read:public async_result_base{
+    class async_result_read{
         private:
         friend class async_io;
 

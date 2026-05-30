@@ -146,7 +146,6 @@ ctest --output-on-failure
 │   ├── async_io.h/.cpp      # 核心类
 │   ├── result_read.h/.cpp   # 读结果
 │   ├── result_write.h/.cpp  # 写结果
-│   ├── result_base.h        # 结果基类
 │   └── data_struct.h        # 类型定义
 ├── test_async_io.cpp        # 单元测试
 ├── CMakeLists.txt           # 顶层

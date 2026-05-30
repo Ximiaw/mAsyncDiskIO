@@ -8,7 +8,6 @@
 #include<memory>
 #include<set>
 #include<liburing.h>
-#include"result_base.h"
 
 namespace mAsyncDiskIO{
     class async_result_read;
