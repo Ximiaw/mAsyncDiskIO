@@ -85,7 +85,7 @@ rr->finish();
 
 ### data_struct
 
-| 类型 | 说明 |
+| 方法 | 说明 |
 |------|------|
 | `make_unique_buf(ptr)` | 工厂函数，从裸指针构造 `unique_buf`。传 `nullptr` 构造空缓冲区 |
 
@@ -117,6 +117,7 @@ rr->finish();
 - 结果对象不可拷贝，可移动。
 - 析构时会自动调用 `finish()` 并释放关联资源。
 - 如果 `async_io` 实例先于结果对象析构，`peek()` 返回 `ERROR`，`wait()` 返回 `-1`，行为安全。
+- `wait()`会触发系统调用
 
 ## 注意事项
 1. **运行权限**：可能需要 **root 权限** 或 `CAP_SYS_ADMIN` capability（`IORING_SETUP_SQPOLL` 要求）。
@@ -126,6 +127,7 @@ rr->finish();
 5. **写操作缓冲区**：`write` 通过 `unique_buf&&` 转移缓冲区所有权，调用后不应再访问原缓冲区。
 6. **读操作缓冲区**：通过 `transfer_data()` 获取结果数据，只能调用一次。
 7. **user_data 生命周期**：如果 `user_data` 传入的是指针，其指向对象的生命周期由调用方保证。
+8. **串行使用**：每次仅允许一个`async_result_read/async_result_write`获取处理，在持用`cqe`的结果对象调用前`finish()`前，其它结果对象`peek()/wait()`会获取正在处理的cqe，导致未定义行为。
 
 ## 测试
 
