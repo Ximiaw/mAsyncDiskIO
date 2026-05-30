@@ -43,6 +43,7 @@ namespace mAsyncDiskIO{
         use_d = reinterpret_cast<use_data*>(cqe->user_data);
         delete[] use_d->buf;
         use_d->buf=nullptr;
+        finish();
         return state::FINISH;
     };
 
@@ -54,7 +55,9 @@ namespace mAsyncDiskIO{
         use_d = reinterpret_cast<use_data*>(cqe->user_data);
         delete[] use_d->buf;
         use_d->buf=nullptr;
-        return cqe->res;
+        int res = cqe->res;
+        finish();
+        return res;
     };
 
     optional_ui64 async_result_write::user_data(){

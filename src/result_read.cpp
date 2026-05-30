@@ -41,6 +41,7 @@ namespace mAsyncDiskIO{
         int ret = io_uring_peek_cqe(ring.lock().get(),&cqe);
         if(ret!=0) return state::UNFINISHED;
         use_d=reinterpret_cast<use_data*>(cqe->user_data);
+        finish();
         return state::FINISH;
     }
 
@@ -50,7 +51,9 @@ namespace mAsyncDiskIO{
         int ret = io_uring_wait_cqe(ring.lock().get(),&cqe);
         if(ret!=0) return -1;
         use_d=reinterpret_cast<use_data*>(cqe->user_data);
-        return cqe->res;
+        int res = cqe->res;
+        finish();
+        return res;
     };
 
     optional_ui64 async_result_read::user_data(){

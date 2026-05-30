@@ -16,6 +16,7 @@ namespace mAsyncDiskIO{
         weak_uring ring;
         io_uring_cqe* cqe=nullptr;
         use_data* use_d=nullptr;
+        void finish();
 
         public:
         explicit async_result_write(weak_uring ring);
@@ -30,7 +31,6 @@ namespace mAsyncDiskIO{
         int wait();
         optional_ui64 user_data();
         size_t size();
-        void finish();
     };
 
 };

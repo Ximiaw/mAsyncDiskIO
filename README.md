@@ -106,16 +106,15 @@ rr->finish();
 
 | 方法 | 说明 |
 |------|------|
-| `empty()` | 未取到数据时为 `true` |
-| `peek()` | 非阻塞检查状态：`UNFINISHED` / `FINISH` / `ERROR` |
-| `wait()` | 阻塞等待完成，返回 io_uring 结果（字节数或负的错误码） |
+| `empty()` | 请求尚未完成时为 `true` |
+| `peek()` | 非阻塞检查状态。返回 `FINISH` 时自动释放 CQE；返回 `UNFINISHED` / `ERROR` 时不释放 |
+| `wait()` | 阻塞等待完成，返回 io_uring 结果（字节数或负的错误码），完成后自动释放 CQE |
 | `user_data()` | 返回提交时传入的用户数据（`optional<uint64_t>`） |
 | `size()` | 返回实际读/写的字节数（`cqe->res`） |
-| `finish()` | 标记 CQE 已处理，释放资源 |
 | `transfer_data()` | **仅 read。** 转移缓冲区所有权给调用方 |
 
 - 结果对象不可拷贝，可移动。
-- 析构时会自动调用 `finish()` 并释放关联资源。
+- `peek()` / `wait()` 在检测到完成后会自动调用 `io_uring_cqe_seen` 释放 CQE，不需要手动清理。
 - 如果 `async_io` 实例先于结果对象析构，`peek()` 返回 `ERROR`，`wait()` 返回 `-1`，行为安全。
 - `wait()`会触发系统调用
 
