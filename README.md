@@ -70,7 +70,7 @@ int main() {
 ### 非阻塞轮询
 
 ```cpp
-shared_result_read rr = io.read(fd, 1024, 0, 42);
+unique_result_read rr = io.read(fd, 1024, 0, 42);
 
 while (rr->peek() == state::UNFINISHED) {
     // 做其他事...
@@ -96,8 +96,8 @@ rr->finish();
 | 方法 | 说明 |
 |------|------|
 | `async_io(size_t deep)` | 构造。初始化 io_uring 队列，深度为 `deep` |
-| `read(fd, size, offset, user_data)` | 提交异步读请求，返回 `shared_result_read`。队列满时返回 `nullptr` |
-| `write(fd, buf, size, offset, user_data)` | 提交异步写请求，转移缓冲区所有权，返回 `shared_result_write`。队列满时返回 `nullptr` |
+| `read(fd, size, offset, user_data)` | 提交异步读请求，返回 `unique_result_read`。队列满时返回 `nullptr` |
+| `write(fd, buf, size, offset, user_data)` | 提交异步写请求，转移缓冲区所有权，返回 `unique_result_write`。队列满时返回 `nullptr` |
 
 - `async_io` 不可拷贝、不可移动。
 - 强调"单线程调用"（不要多线程并发提交），但允许队列深度级别的多请求 inflight。

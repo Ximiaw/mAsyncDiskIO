@@ -23,8 +23,8 @@ namespace mAsyncDiskIO{
         async_io& operator=(async_io&&)=delete;
 
         public:
-        shared_result_read read(int fd,uint32_t size,uint64_t offset,uint64_t user_data);
-        shared_result_write write(int fd,unique_buf&& buf,uint32_t size,uint64_t offset,uint64_t user_data);
+        unique_result_read read(int fd,uint32_t size,uint64_t offset,uint64_t user_data);
+        unique_result_write write(int fd,unique_buf&& buf,uint32_t size,uint64_t offset,uint64_t user_data);
     };
 
 };

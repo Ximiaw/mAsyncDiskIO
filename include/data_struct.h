@@ -24,9 +24,8 @@ namespace mAsyncDiskIO{
         };
     };
 
-    using shared_result=std::shared_ptr<async_result_base>;
-    using shared_result_read=std::shared_ptr<async_result_read>;
-    using shared_result_write=std::shared_ptr<async_result_write>;
+    using unique_result_read=std::unique_ptr<async_result_read>;
+    using unique_result_write=std::unique_ptr<async_result_write>;
 
     using shared_uring=std::shared_ptr<io_uring>;
     using weak_uring=std::weak_ptr<io_uring>;
