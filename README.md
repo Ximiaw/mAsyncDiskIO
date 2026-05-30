@@ -126,7 +126,6 @@ rr->finish();
 5. **写操作缓冲区**：`write` 通过 `unique_buf&&` 转移缓冲区所有权，调用后不应再访问原缓冲区。
 6. **读操作缓冲区**：通过 `transfer_data()` 获取结果数据，只能调用一次。
 7. **user_data 生命周期**：如果 `user_data` 传入的是指针，其指向对象的生命周期由调用方保证。
-8. **串行使用**：每次仅允许一个`async_result_read/async_result_write`获取处理，在持用`cqe`的结果对象调用前`finish()`前，其它结果对象`peek()/wait()`会获取正在处理的cqe，导致未定义行为。
 
 ## 测试
 
