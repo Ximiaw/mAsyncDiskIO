@@ -14,7 +14,6 @@ namespace mAsyncDiskIO{
     };
 
     unique_result async_io::read(int fd,uint32_t size,uint64_t user_data,uint64_t offset){
-        if(map->find(user_data)!=map->end()) return nullptr;
         submit_error=false;
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return nullptr;
@@ -36,7 +35,6 @@ namespace mAsyncDiskIO{
     };
 
     bool async_io::prep_read(int fd,uint32_t size,uint64_t user_data,uint64_t offset){
-        if(map->find(user_data)!=map->end()) return false;
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return false;
 
@@ -53,7 +51,6 @@ namespace mAsyncDiskIO{
     };
 
     unique_result async_io::write(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset){
-        if(map->find(user_data)!=map->end()) return nullptr;
         submit_error=false;
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return nullptr;
@@ -74,7 +71,6 @@ namespace mAsyncDiskIO{
     };
 
     bool async_io::prep_write(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset){
-        if(map->find(user_data)!=map->end()) return false;
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return false;
         

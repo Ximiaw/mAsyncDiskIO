@@ -13,7 +13,7 @@
 namespace mAsyncDiskIO{
     class async_result;
 
-    using unique_buf=std::unique_ptr<uint8_t,std::function<void(uint8_t*)>>;
+    using unique_buf=std::unique_ptr<uint8_t[],std::function<void(uint8_t*)>>;
     inline unique_buf make_unique_buf(uint8_t* ptr=nullptr,std::function<void(uint8_t*)> fn=[](uint8_t* ptr){if(ptr) delete[] ptr;}){
         return unique_buf{ptr,fn};
     };
