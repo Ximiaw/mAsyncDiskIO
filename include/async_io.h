@@ -10,6 +10,7 @@ namespace mAsyncDiskIO{
 
     class async_io{
         private:
+        uint64_t id=0;
         shared_uring ring;
         shared_user_data_map map;//结果对象在读到cqe后从map里面移走所读数据
         size_t count_result=0;
