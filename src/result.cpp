@@ -68,7 +68,7 @@ namespace mAsyncDiskIO{
         if(buf_empty()) return make_unique_buf();
         if(rw()==RW::WRITE) return make_unique_buf();
         is_valid=false;
-        return make_unique_buf(us_d.buf.release());
+        return std::move(us_d.buf);
     };
 
     int async_result::size(){
