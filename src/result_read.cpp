@@ -1,83 +1,86 @@
 // Copyright (c) 2026 Ximiaw
 // SPDX-License-Identifier: MIT
-#include"result_read.h"
+#include"result.h"
 
 namespace mAsyncDiskIO{
 
-    async_result_read::async_result_read(weak_uring ring):ring(ring){};
-
-    async_result_read::~async_result_read(){
-        finish();
-        if(use_d) delete use_d;
+    async_result::async_result(weak_uring ring,weak_user_data_map map):ring(ring),map(map){
+        is_valid=!ring.expired()&&!map.expired();
     };
 
-    async_result_read::async_result_read(async_result_read&& other) noexcept{
+    async_result::async_result(async_result&& other) noexcept{
         ring=std::move(other.ring);
-        cqe=other.cqe;
-        use_d=other.use_d;
-
-        other.use_d=nullptr;
-        other.cqe=nullptr;
+        map=std::move(other.map);
+        us_d=std::move(other.us_d);
+        byte_size=std::move(other.byte_size);
+        is_valid=std::move(other.is_valid);
+        other.is_valid=false;
     };
 
-    async_result_read& async_result_read::operator=(async_result_read&& other) noexcept{
+    async_result& async_result::operator=(async_result&& other) noexcept{
         if(this==&other) return *this;
         ring=std::move(other.ring);
-        cqe=other.cqe;
-        use_d=other.use_d;
-
-        other.use_d=nullptr;
-        other.cqe=nullptr;
+        map=std::move(other.map);
+        us_d=std::move(other.us_d);
+        byte_size=std::move(other.byte_size);
+        is_valid=std::move(other.is_valid);
+        other.is_valid=false;
         return *this;
     };
 
-    bool async_result_read::empty(){
-        return use_d==nullptr;
+    RW async_result::rw(){
+        return us_d.rw;
     };
 
-    state async_result_read::peek(){
-        if(ring.expired()) return state::ERROR;
-        if(cqe) return state::FINISH;
+    bool async_result::valid(){
+        return is_valid&&!ring.expired()&&!map.expired();
+    };
+
+    bool async_result::buf_empty(){
+        return !us_d.buf.operator bool();
+    };
+
+    state async_result::peek(){
+        if(!buf_empty()) return state::FINISH;
+        if(!valid()) return state::ERROR;
+        io_uring_cqe* cqe=nullptr;
         int ret = io_uring_peek_cqe(ring.lock().get(),&cqe);
         if(ret!=0) return state::UNFINISHED;
-        use_d=reinterpret_cast<use_data*>(cqe->user_data);
-        finish();
+        finish(cqe);
         return state::FINISH;
-    }
+    };
 
-    int async_result_read::wait(){
-        if(ring.expired()) return -1;
-        if(cqe) return cqe->res;
+    int async_result::wait(){
+        if(!buf_empty()) return byte_size;
+        if(!valid()) return -1;
+        io_uring_cqe* cqe=nullptr;
         int ret = io_uring_wait_cqe(ring.lock().get(),&cqe);
         if(ret!=0) return -1;
-        use_d=reinterpret_cast<use_data*>(cqe->user_data);
-        int res = cqe->res;
-        finish();
-        return res;
+        finish(cqe);
+        return byte_size;
     };
 
-    optional_ui64 async_result_read::user_data(){
-        if(!use_d) return optional_ui64{};
-        return optional_ui64{use_d->use_d};
+    uint64_t async_result::user_data(){
+        return us_d.use_d;
     };
 
-    unique_buf async_result_read::transfer_data(){
-        if(!use_d) return make_unique_buf();
-        uint8_t* ptr = use_d->buf;
-        use_d->buf=nullptr;
-        return make_unique_buf(ptr);
+    unique_buf async_result::transfer_data(){
+        if(buf_empty()) return make_unique_buf();
+        if(rw()==RW::WRITE) return make_unique_buf();
+        is_valid=false;
+        return make_unique_buf(us_d.buf.release());
     };
 
-    size_t async_result_read::size(){
-        if(!cqe) return 0;
-        return cqe->res;
+    int async_result::size(){
+        return byte_size;
     };
 
-    void async_result_read::finish(){
-        if(ring.expired()) return;
-        if(!cqe&&wait()==-1) return;
+    void async_result::finish(io_uring_cqe* cqe){
+        shared_user_data_map sudm = map.lock();
+        us_d=std::move(sudm->at(cqe->user_data));
+        sudm->erase(cqe->user_data);
+        byte_size=cqe->res;
         io_uring_cqe_seen(ring.lock().get(),cqe);
-        ring.reset();
-        cqe=nullptr;
     };
+
 };

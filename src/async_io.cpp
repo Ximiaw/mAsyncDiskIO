@@ -4,44 +4,111 @@
 
 namespace mAsyncDiskIO{
 
-    async_io::async_io(size_t deep):ring(new io_uring){
-        int ret = io_uring_queue_init(deep,ring.get(),IORING_SETUP_SQPOLL);
-        if(ret<0) throw std::runtime_error("io_uring_queue_init failed");
+    async_io::async_io(size_t deep,unsigned flags):ring(new io_uring),map(new user_data_map){
+        int ret = io_uring_queue_init(deep,ring.get(),flags);
+        if(ret!=0) throw std::runtime_error("async_io:init error");
     };
 
     async_io::~async_io(){
-        io_uring_queue_exit(ring.get());
+        if(ring) io_uring_queue_exit(ring.get());
     };
 
-    unique_result_read async_io::read(int fd,uint32_t size,uint64_t offset,uint64_t user_data){
+    unique_result async_io::read(int fd,uint32_t size,uint64_t user_data,uint64_t offset){
+        if(map->find(user_data)!=map->end()) return nullptr;
+        submit_error=false;
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
-        if(!sqe) return unique_result_read{};//队列没有空位置失败
-
-        unique_result_read sr = std::make_unique<async_result_read>(ring);
-        async_result_read* arr = sr.get();
-
-        use_data* ud = new use_data{user_data,new uint8_t[size+1]};
-        ud->buf[size]=0;
-        io_uring_prep_read(sqe,fd,ud->buf,size,offset);
-        io_uring_sqe_set_data(sqe,ud);
-        io_uring_submit(ring.get());
+        if(!sqe) return nullptr;
         
-        return sr;
+        unique_buf buf = make_unique_buf(new uint8_t[size]);
+        use_data ud{user_data,std::move(buf),RW::READ};
+        uint8_t* buf_p = ud.buf.get();
+
+        map->insert({user_data,std::move(ud)});
+        io_uring_prep_read(sqe,fd,buf_p,size,offset);
+        sqe->user_data=user_data;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
+
+        if(io_uring_submit(ring.get())<0){
+            count_result++;//提交失败，但sqe已经准备，可能随着后续某一次调用submit提交
+            submit_error=true;
+            return nullptr;
+        }
+        return std::make_unique<async_result>(ring,map);
     };
 
-    unique_result_write async_io::write(int fd,unique_buf&& buf,uint32_t size,uint64_t offset,uint64_t user_data){
+    bool async_io::prep_read(int fd,uint32_t size,uint64_t user_data,uint64_t offset){
+        if(map->find(user_data)!=map->end()) return false;
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
-        if(!sqe) return unique_result_write{};//队列没有空位置失败
+        if(!sqe) return false;
 
-        unique_result_write sr = std::make_unique<async_result_write>(ring);
-        async_result_write* arw = sr.get();
+        unique_buf buf = make_unique_buf(new uint8_t[size]);
+        use_data ud{user_data,std::move(buf),RW::READ};
+        uint8_t* buf_p = ud.buf.get();
 
-        use_data* ud = new use_data{user_data,buf.release()};
-        io_uring_prep_write(sqe,fd,ud->buf,size,offset);
-        io_uring_sqe_set_data(sqe,ud);
-        io_uring_submit(ring.get());
+        map->insert({user_data,std::move(ud)});
+        io_uring_prep_read(sqe,fd,buf_p,size,offset);
+        sqe->user_data=user_data;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
 
-        return sr;
+        count_result++;
+        return true;
     };
 
+    unique_result async_io::write(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset){
+        if(map->find(user_data)!=map->end()) return nullptr;
+        submit_error=false;
+        io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
+        if(!sqe) return nullptr;
+        
+        use_data ud{user_data,std::move(buf),RW::WRITE};
+        uint8_t* buf_p = ud.buf.get();
+
+        map->insert({user_data,std::move(ud)});
+        io_uring_prep_write(sqe,fd,buf_p,size,offset);
+        sqe->user_data=user_data;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
+
+        if(io_uring_submit(ring.get())<0){
+            count_result++;
+            submit_error=true;
+            return nullptr;
+        }
+        return std::make_unique<async_result>(ring,map);
+    };
+
+    bool async_io::prep_write(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset){
+        if(map->find(user_data)!=map->end()) return false;
+        io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
+        if(!sqe) return false;
+        
+        use_data ud{user_data,std::move(buf),RW::WRITE};
+        uint8_t* buf_p = ud.buf.get();
+
+        map->insert({user_data,std::move(ud)});
+        io_uring_prep_write(sqe,fd,buf_p,size,offset);
+        sqe->user_data=user_data;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
+
+        count_result++;
+        return true;
+    };
+
+    size_t async_io::result_count(){
+        return count_result;
+    };
+
+    unique_result async_io::get_result(){
+        if(count_result==0) return nullptr;
+        count_result--;
+        return std::make_unique<async_result>(ring,map);
+    };
+
+    bool async_io::submit(){
+        submit_error=false;
+        if(io_uring_submit(ring.get())<0){
+            submit_error=true;
+            return false;
+        }
+        return true;
+    };
+
+    bool async_io::submit_err(){
+        return submit_error;
+    };
 };

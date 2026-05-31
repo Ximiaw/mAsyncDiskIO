@@ -5,17 +5,18 @@
 
 #include<liburing.h>
 #include"data_struct.h"
-#include"result_read.h"
-#include"result_write.h"
 
 namespace mAsyncDiskIO{
 
     class async_io{
         private:
         shared_uring ring;
+        shared_user_data_map map;//结果对象在读到cqe后从map里面移走所读数据
+        size_t count_result=0;
+        bool submit_error=false;
 
         public:
-        async_io(size_t deep=32);
+        async_io(size_t deep=32,unsigned flags=IORING_SETUP_SQPOLL);
         ~async_io();
         async_io(async_io&)=delete;
         async_io(async_io&&)=delete;
@@ -23,8 +24,17 @@ namespace mAsyncDiskIO{
         async_io& operator=(async_io&&)=delete;
 
         public:
-        unique_result_read read(int fd,uint32_t size,uint64_t offset,uint64_t user_data);
-        unique_result_write write(int fd,unique_buf&& buf,uint32_t size,uint64_t offset,uint64_t user_data);
+        unique_result read(int fd,uint32_t size,uint64_t user_data,uint64_t offset=0);
+        bool prep_read(int fd,uint32_t size,uint64_t user_data,uint64_t offset=0);
+
+        unique_result write(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset=0);
+        bool prep_write(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset=0);
+
+        size_t result_count();
+        unique_result get_result();
+
+        bool submit();
+        bool submit_err();
     };
 
 };
