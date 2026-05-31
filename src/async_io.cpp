@@ -20,12 +20,13 @@ namespace mAsyncDiskIO{
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return nullptr;
         
-        use_data ud{id++,user_data,std::move(buf),RW::READ};
+        uint64_t key = id++;
+        use_data ud{key,user_data,std::move(buf),RW::READ};
         uint8_t* buf_p = ud.buf.get();
 
-        map->insert({ud.id,std::move(ud)});
+        map->insert({key,std::move(ud)});
         io_uring_prep_read(sqe,fd,buf_p,size,offset);
-        sqe->user_data=ud.id;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
+        sqe->user_data=key;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
 
         if(io_uring_submit(ring.get())<0){
             count_result++;//提交失败，但sqe已经准备，可能随着后续某一次调用submit提交
@@ -41,12 +42,13 @@ namespace mAsyncDiskIO{
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return false;
 
-        use_data ud{id++,user_data,std::move(buf),RW::READ};
+        uint64_t key = id++;
+        use_data ud{key,user_data,std::move(buf),RW::READ};
         uint8_t* buf_p = ud.buf.get();
 
-        map->insert({ud.id,std::move(ud)});
+        map->insert({key,std::move(ud)});
         io_uring_prep_read(sqe,fd,buf_p,size,offset);
-        sqe->user_data=ud.id;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
+        sqe->user_data=key;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
 
         count_result++;
         return true;
@@ -57,12 +59,13 @@ namespace mAsyncDiskIO{
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return nullptr;
         
-        use_data ud{id++,user_data,std::move(buf),RW::WRITE};
+        uint64_t key = id++;
+        use_data ud{key,user_data,std::move(buf),RW::WRITE};
         uint8_t* buf_p = ud.buf.get();
 
-        map->insert({ud.id,std::move(ud)});
+        map->insert({key,std::move(ud)});
         io_uring_prep_write(sqe,fd,buf_p,size,offset);
-        sqe->user_data=ud.id;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
+        sqe->user_data=key;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
 
         if(io_uring_submit(ring.get())<0){
             count_result++;
@@ -76,12 +79,13 @@ namespace mAsyncDiskIO{
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return false;
         
-        use_data ud{id++,user_data,std::move(buf),RW::WRITE};
+        uint64_t key = id++;
+        use_data ud{key,user_data,std::move(buf),RW::WRITE};
         uint8_t* buf_p = ud.buf.get();
 
-        map->insert({ud.id,std::move(ud)});
+        map->insert({key,std::move(ud)});
         io_uring_prep_write(sqe,fd,buf_p,size,offset);
-        sqe->user_data=ud.id;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
+        sqe->user_data=key;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
 
         count_result++;
         return true;
