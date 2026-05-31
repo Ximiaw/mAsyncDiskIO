@@ -93,6 +93,10 @@ namespace mAsyncDiskIO{
         return count_result;
     };
 
+    size_t async_io::queue_size(){
+        return map->size();
+    };
+
     unique_result async_io::get_result(){
         if(count_result==0) return nullptr;
         count_result--;

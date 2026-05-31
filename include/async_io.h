@@ -34,6 +34,8 @@ namespace mAsyncDiskIO{
         size_t result_count();
         unique_result get_result();
 
+        size_t queue_size();
+
         bool submit();
         bool submit_err();
     };
