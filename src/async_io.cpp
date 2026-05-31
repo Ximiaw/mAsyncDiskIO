@@ -14,11 +14,12 @@ namespace mAsyncDiskIO{
     };
 
     unique_result async_io::read(int fd,uint32_t size,uint64_t user_data,uint64_t offset){
+        unique_buf buf = make_unique_buf(new uint8_t[size]);
+        
         submit_error=false;
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return nullptr;
         
-        unique_buf buf = make_unique_buf(new uint8_t[size]);
         use_data ud{id++,user_data,std::move(buf),RW::READ};
         uint8_t* buf_p = ud.buf.get();
 
@@ -35,10 +36,11 @@ namespace mAsyncDiskIO{
     };
 
     bool async_io::prep_read(int fd,uint32_t size,uint64_t user_data,uint64_t offset){
+        unique_buf buf = make_unique_buf(new uint8_t[size]);
+
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return false;
 
-        unique_buf buf = make_unique_buf(new uint8_t[size]);
         use_data ud{id++,user_data,std::move(buf),RW::READ};
         uint8_t* buf_p = ud.buf.get();
 
