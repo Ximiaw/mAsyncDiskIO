@@ -13,9 +13,7 @@ namespace mAsyncDiskIO{
         if(ring) io_uring_queue_exit(ring.get());
     };
 
-    unique_result async_io::read(int fd,uint32_t size,uint64_t user_data,uint64_t offset){
-        unique_buf buf = make_unique_buf(new uint8_t[size]);
-        
+    unique_result async_io::read(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset){
         submit_error=false;
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return nullptr;
