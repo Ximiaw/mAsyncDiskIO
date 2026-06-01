@@ -18,7 +18,7 @@ namespace mAsyncDiskIO{
         bool submit_error=false;
 
         public:
-        async_io(size_t deep=32,unsigned flags=IORING_SETUP_SQPOLL);
+        async_io(size_t deep=32,unsigned flags=0);
         ~async_io();
         async_io(async_io&)=delete;
         async_io(async_io&&)=delete;
