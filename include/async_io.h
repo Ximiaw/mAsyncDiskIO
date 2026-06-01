@@ -14,6 +14,7 @@ namespace mAsyncDiskIO{
         shared_uring ring;
         shared_user_data_map map;//结果对象在读到cqe后从map里面移走所读数据
         size_t count_result=0;
+        size_t count_prep=0;
         bool submit_error=false;
 
         public:
@@ -32,6 +33,7 @@ namespace mAsyncDiskIO{
         bool prep_write(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset=0);
 
         size_t result_count();
+        size_t prep_count();
         unique_result get_result(bool coerce=false);
 
         size_t queue_size();
