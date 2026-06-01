@@ -17,7 +17,7 @@ namespace mAsyncDiskIO{
         bool submit_error=false;
 
         public:
-        async_io(size_t deep=32,unsigned flags=0);
+        async_io(size_t deep=32,unsigned flags=IORING_SETUP_SQPOLL);
         ~async_io();
         async_io(async_io&)=delete;
         async_io(async_io&&)=delete;
@@ -26,7 +26,7 @@ namespace mAsyncDiskIO{
 
         public:
         unique_result read(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset=0);
-        bool prep_read(int fd,uint32_t size,uint64_t user_data,uint64_t offset=0);
+        bool prep_read(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset=0);
 
         unique_result write(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset=0);
         bool prep_write(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset=0);

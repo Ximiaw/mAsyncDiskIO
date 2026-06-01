@@ -34,9 +34,7 @@ namespace mAsyncDiskIO{
         return std::make_unique<async_result>(ring,map);
     };
 
-    bool async_io::prep_read(int fd,uint32_t size,uint64_t user_data,uint64_t offset){
-        unique_buf buf = make_unique_buf(new uint8_t[size]);
-
+    bool async_io::prep_read(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset){
         io_uring_sqe* sqe = io_uring_get_sqe(ring.get());
         if(!sqe) return false;
 
