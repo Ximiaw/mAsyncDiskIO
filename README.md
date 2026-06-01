@@ -32,6 +32,7 @@ make
 - `is_valid`在初始化时会检查`map`和`ring`是否有效，并以此设置`is_valid`。
 - 在调用`transfer_data()`后`is_valid`会被设置为`false`，`us_d`内的`buf`会被设置为`nullptr`，这会使得大多数api失效，但不影响`user_data()`,`size()`和`rw()`。
 - 若创建该对象的`async_io`失效，则所有由这个`async_io`创建的结果对象全部失效。
+- 调用`peek()/wait()`所拿结果不保证和提交顺序一致，因此需要通过`user_data()`获取标记判断。
 
 ## 许可证
 
