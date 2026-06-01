@@ -32,7 +32,7 @@ namespace mAsyncDiskIO{
         bool prep_write(int fd,unique_buf&& buf,uint32_t size,uint64_t user_data,uint64_t offset=0);
 
         size_t result_count();
-        unique_result get_result();
+        unique_result get_result(bool coerce=false);
 
         size_t queue_size();
 

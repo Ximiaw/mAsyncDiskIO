@@ -95,7 +95,8 @@ namespace mAsyncDiskIO{
         return map->size();
     };
 
-    unique_result async_io::get_result(){
+    unique_result async_io::get_result(bool coerce){
+        if(coerce) return std::make_unique<async_result>(ring,map);
         if(count_result==0) return nullptr;
         count_result--;
         return std::make_unique<async_result>(ring,map);
