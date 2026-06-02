@@ -24,7 +24,7 @@ make
 - `result_count()`表示应拿多少个结果对象，如果强行获取更多的结果对象，则在调用结果对象的`wait()`时可能导致无法中止的阻塞，因此不建议通过`get_result(true)`强制获取(提供该接口是防止结果对象析构但没有消费而导致在结果队列永久滞留)。
 - 在`sqe`准备后，若没有提交在大于当前`cqe`数量的结果对象调用`wait()`时可能导致无法中止的阻塞，而提交是否成功则在调用`read()/write()/submit()`后通过`submit_err()`检查。(此条已失效，在未提交成功前无法通过`get_result()`获取结果对象)
 - `queue_size()`和`result_count()`语义相似但不同，前者表示提交和准备的数据有几条，使得他减少只有结果对象通过`peek()/wait()`消费后才会减去消费条目，后者表示还有几个结果对象应拿，只有通过`get_result()`才会减少计数。
-- `prep_count()`返回已准备未提交的任务数量，当调用`read()/write()/submit()`提交后会其计数会加到`result_count()`上，并清空自身。
+- `prep_count()`返回已准备未提交的任务数量，当调用`read()/write()/submit()`提交后会根据成功提交的数量修改`result_count()`和`prep_count()`的计数。
 
 ### async_result
 - 在未通过`peek()/wait()`前其绝大多数方法无效，只会返回默认值/空值。

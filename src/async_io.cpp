@@ -26,13 +26,15 @@ namespace mAsyncDiskIO{
         io_uring_prep_read(sqe,fd,buf_p,size,offset);
         sqe->user_data=key;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
 
-        if(io_uring_submit(ring.get())<0){
+        int ret = io_uring_submit(ring.get());
+        if(ret<=0){
             count_prep++;//提交失败，但sqe已经准备，可能随着后续某一次调用submit提交
             submit_error=true;
             return nullptr;
         }
-        count_result+=count_prep;
-        count_prep=0;
+        ret--;//该api会直接返回一个结果对象，而提交前有准备sqe但没有修改计数，因此减1
+        count_result+=ret;
+        count_prep-=ret;
         return std::make_unique<async_result>(ring,map);
     };
 
@@ -65,13 +67,15 @@ namespace mAsyncDiskIO{
         io_uring_prep_write(sqe,fd,buf_p,size,offset);
         sqe->user_data=key;//手动处理的，不转成指针，通过map查询可以使得缓冲区受到map管理
 
-        if(io_uring_submit(ring.get())<0){
-            count_prep++;
+        int ret = io_uring_submit(ring.get());
+        if(ret<=0){
+            count_prep++;//提交失败，但sqe已经准备，可能随着后续某一次调用submit提交
             submit_error=true;
             return nullptr;
         }
-        count_result+=count_prep;
-        count_prep=0;
+        ret--;//该api会直接返回一个结果对象，而提交前有准备sqe但没有修改计数，因此减1
+        count_result+=ret;
+        count_prep-=ret;
         return std::make_unique<async_result>(ring,map);
     };
 
@@ -112,12 +116,13 @@ namespace mAsyncDiskIO{
 
     bool async_io::submit(){
         submit_error=false;
-        if(io_uring_submit(ring.get())<0){
+        int ret = io_uring_submit(ring.get());
+        if(ret<=0){
             submit_error=true;
             return false;
         }
-        count_result+=count_prep;
-        count_prep=0;
+        count_result+=ret;
+        count_prep-=ret;
         return true;
     };
 
