@@ -45,7 +45,8 @@ std::ostream& operator<<(std::ostream& os, const PerfParams& params) {
 class ParameterizedPerfTest : public ::testing::TestWithParam<PerfParams> {
 protected:
     int fd = -1;
-    const char* test_file = "/tmp/mAsyncDiskIO_param_test.dat";
+    std::string str{std::string{std::getenv("HOME")}+"/mAsyncDiskIO_param_test.dat"};
+    const char* test_file = str.c_str();
     
     size_t block_size;
     size_t total_bytes;
