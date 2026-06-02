@@ -8,3 +8,11 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC uring)
+
+target_compile_options(${PROJECT_NAME} PRIVATE 
+    $<$<CONFIG:DEBUG>:-O0 -g -fsanitize=address -fno-omit-frame-pointer>
+    $<$<CONFIG:RELEASE>:-O2 -DNDEBUG>
+)
+target_link_options(${PROJECT_NAME} PRIVATE 
+    $<$<CONFIG:DEBUG>:-fsanitize=address>
+)
